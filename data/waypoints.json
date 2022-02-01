@@ -1,0 +1,86 @@
+{
+    "entries": [
+        "KSC", 
+        {
+            "entries": [
+                "latitude", 0.1,
+                "longitude", -74.5,
+                "elevation", 68.5
+            ],
+            "$type": "kOS.Safe.Encapsulation.Lexicon"
+        },
+        "Island", 
+        {
+            "entries": [
+                "latitude", -1.5,
+                "longitude", -72,
+                "elevation", 100
+            ],
+            "$type": "kOS.Safe.Encapsulation.Lexicon"
+        },
+        "Baikerbanur", 
+        {
+            "entries": [
+                "latitude", 20.5,
+                "longitude", -146.5,
+                "elevation", 422
+            ],
+            "$type": "kOS.Safe.Encapsulation.Lexicon"
+        },
+        "Woomerang", 
+        {
+            "entries": [
+                "latitude", 45.3,
+                "longitude", 136.1,
+                "elevation", 740
+            ],
+            "$type": "kOS.Safe.Encapsulation.Lexicon"
+        },
+        "Desert", 
+        {
+            "entries": [
+                "latitude", -6.5,
+                "longitude", -143.9,
+                "elevation", 820
+            ],
+            "$type": "kOS.Safe.Encapsulation.Lexicon"
+        },
+        "GlacierLake", 
+        {
+            "entries": [
+                "latitude", 73.56,
+                "longitude", 84.27,
+                "elevation", 20
+            ],
+            "$type": "kOS.Safe.Encapsulation.Lexicon"
+        },
+        "Cove", 
+        {
+            "entries": [
+                "latitude", 3.7,
+                "longitude", -72.20,
+                "elevation", 5
+            ],
+            "$type": "kOS.Safe.Encapsulation.Lexicon"
+        },
+        "MahiMahi", 
+        {
+            "entries": [
+                "latitude", -49.80,
+                "longitude", -120.77,
+                "elevation", 10
+            ],
+            "$type": "kOS.Safe.Encapsulation.Lexicon"
+        },
+        "Crater", 
+        {
+            "entries": [
+                "latitude", 8.39,
+                "longitude", -179.68,
+                "elevation", 10
+            ],
+            "$type": "kOS.Safe.Encapsulation.Lexicon"
+        }
+    ],
+    "$type": "kOS.Safe.Encapsulation.Lexicon"
+}

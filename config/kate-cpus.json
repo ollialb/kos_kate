@@ -1,0 +1,86 @@
+{
+    "entries": [
+        "master", 
+        {
+            "entries": [
+                "ui", true,
+                "worker", true,
+                "ipu", 1000,
+                "powerup", true,
+                "sasControl", false,
+                "modules", { "items": ["AUTOPLT","FLTAERO","NAVIGTN","SHIPSYS"], "$type": "kOS.Safe.Encapsulation.ListValue" }
+            ],
+            "$type": "kOS.Safe.Encapsulation.Lexicon"
+        },
+        "masterSas", 
+        {
+            "entries": [
+                "ui", true,
+                "worker", true,
+                "ipu", 1000,
+                "powerup", true,
+                "sasControl", true,
+                "modules", { "items": ["AUTOPLT","FLTAERO","NAVIGTN","SHIPSYS"], "$type": "kOS.Safe.Encapsulation.ListValue" }
+            ],
+            "$type": "kOS.Safe.Encapsulation.Lexicon"
+        },
+        "ui", 
+        {
+            "entries": [
+                "ui", true,
+                "worker", false,
+                "ipu", 500,
+                "powerup", true
+            ],
+            "$type": "kOS.Safe.Encapsulation.Lexicon"
+        },
+        "worker", 
+        {
+            "entries": [
+                "ui", false,
+                "worker", true,
+                "ipu", 500,
+                "powerup", true
+            ],
+            "$type": "kOS.Safe.Encapsulation.Lexicon"
+        },
+        "rsvp-server", 
+        {
+            "entries": [
+                "ui", false,
+                "worker", true,
+                "externals", {
+                    "entries": [
+                        "rsvp", "archive:/rsvp"
+                    ],
+                    "$type": "kOS.Safe.Encapsulation.Lexicon"
+                },
+                "ipu", 50,
+                "powerup", true
+            ],
+            "$type": "kOS.Safe.Encapsulation.Lexicon"
+        },
+        "probe", 
+        {
+            "entries": [
+                "ui", true,
+                "worker", true,
+                "ipu", 500,
+                "powerup", false,
+                "modules", { "items": ["AUTOPLT","NAVIGTN","SHIPSYS"], "$type": "kOS.Safe.Encapsulation.ListValue" }
+            ],
+            "$type": "kOS.Safe.Encapsulation.Lexicon"
+        },
+        "default", 
+        {
+            "entries": [
+                "ui", true,
+                "worker", true,
+                "ipu", 500,
+                "powerup", true
+            ],
+            "$type": "kOS.Safe.Encapsulation.Lexicon"
+        }
+    ],
+    "$type": "kOS.Safe.Encapsulation.Lexicon"
+}

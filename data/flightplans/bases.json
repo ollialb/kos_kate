@@ -1,0 +1,58 @@
+{
+    "entries": [
+        "waypoints", 
+        {
+            "items": [
+                {
+                    "entries": [
+                        "name",     "KSC",
+                        "altitude", 9000,
+                        "speed",    500
+                    ], "$type": "kOS.Safe.Encapsulation.Lexicon"
+                },
+                {
+                    "entries": [
+                        "name",     "Island",
+                        "altitude", 9000,
+                        "speed",    500
+                    ], "$type": "kOS.Safe.Encapsulation.Lexicon"
+                },
+                {
+                    "entries": [
+                        "name",     "Cove",
+                        "altitude", 9000,
+                        "speed",    500
+                    ], "$type": "kOS.Safe.Encapsulation.Lexicon"
+                },
+                {
+                    "entries": [
+                        "name",     "MahiMahi",
+                        "altitude", 9000,
+                        "speed",    500
+                    ], "$type": "kOS.Safe.Encapsulation.Lexicon"
+                },
+                {
+                    "entries": [
+                        "name",     "Crater",
+                        "altitude", 9000,
+                        "speed",    500
+                    ], "$type": "kOS.Safe.Encapsulation.Lexicon"
+                },
+                {
+                    "entries": [
+                        "name",     "GlacierLake",
+                        "altitude", 9000,
+                        "speed",    500
+                    ], "$type": "kOS.Safe.Encapsulation.Lexicon"
+                },
+                {
+                    "entries": [
+                        "name",     "Desert",
+                        "altitude", 9000,
+                        "speed",    500
+                    ], "$type": "kOS.Safe.Encapsulation.Lexicon"
+                }
+            ], "$type": "kOS.Safe.Encapsulation.ListValue"
+        }
+    ], "$type": "kOS.Safe.Encapsulation.Lexicon"
+}

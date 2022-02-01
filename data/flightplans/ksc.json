@@ -1,0 +1,23 @@
+{
+    "entries": [
+        "waypoints", 
+        {
+            "items": [
+                {
+                    "entries": [
+                        "name",     "ksc",
+                        "altitude", 5000,
+                        "speed",    250
+                    ], "$type": "kOS.Safe.Encapsulation.Lexicon"
+                },
+                {
+                    "entries": [
+                        "name",     "island",
+                        "altitude", 5000,
+                        "speed",    220
+                    ], "$type": "kOS.Safe.Encapsulation.Lexicon"
+                }
+            ], "$type": "kOS.Safe.Encapsulation.ListValue"
+        }
+    ], "$type": "kOS.Safe.Encapsulation.Lexicon"
+}

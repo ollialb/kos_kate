@@ -1,0 +1,32 @@
+{
+    "entries": [
+        "master", 
+        {
+            "entries": [
+                "ui", true
+            ],
+            "$type": "kOS.Safe.Encapsulation.Lexicon"
+        },
+        "rsvp-server", 
+        {
+            "entries": [
+                "ui", false,
+                "externals", {
+                    "entries": [
+                        "rsvp", "archive:/rsvp"
+                    ],
+                    "$type": "kOS.Safe.Encapsulation.Lexicon"
+                }
+            ],
+            "$type": "kOS.Safe.Encapsulation.Lexicon"
+        },
+        "default", 
+        {
+            "entries": [
+                "ui", true
+            ],
+            "$type": "kOS.Safe.Encapsulation.Lexicon"
+        }
+    ],
+    "$type": "kOS.Safe.Encapsulation.Lexicon"
+}
