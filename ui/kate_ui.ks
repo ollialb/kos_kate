@@ -29,6 +29,7 @@ global function KateUi {
     set this:statusTime to time.
     set this:moduleRows to 1.
     set this:standby to ship:status <> "PRELAUNCH".
+    set this:shellUpdateToken to 0.
 
     set this:moduleKeyBar to KatePKeyBar("ModulePKeyBar", 0, 2, 0, 2).
     set this:taskKeyBar to KatePKeyBar("TaskPKeyBar", 54, 2, 0, 2).
@@ -44,6 +45,7 @@ global function KateUi {
     set this:drawMainFrame to KateUi_drawMainFrame@:bind(this):bind(runtime).
     set this:drawMainContent to KateUi_drawMainContent@:bind(this):bind(runtime).
     set this:focussedModuleReact to KateUi_focussedModuleReact@:bind(this):bind(runtime).
+    set this:drawShell to KateUi_drawShell@:bind(this):bind(runtime).
 
     this:def("setStatus", KateUi_setStatus@).
 
@@ -196,6 +198,7 @@ local function KateUi_update {
     }
     
     this:drawMainContent().
+    this:drawShell().
 
     if not this:standby {
         this:moduleKeyBar:safeCall0("drawUi").
@@ -227,36 +230,6 @@ local function KateUi_drawMainFrame {
     // A[B]RE S ║
     //               1         2         3         4         5         6
     //     01234567890123456789012345678901234567890123456789012345678901
-    // print " *KATE* ║                                            ║ V0.8.4 " at (0, 0).
-    // print "════════╬════════════════════════════════════════════╬════════" at (0, 1).
-    // print "        ║ MODULES                                    ║        " at (0, 2).
-    // print "════════╣                                            ╠════════" at (0, 3).
-    // print "        ║                                            ║        " at (0, 4).
-    // print "════════╣                                            ╠════════" at (0, 5).
-    // print "        ║                                            ║        " at (0, 6).
-    // print "════════╣                                            ╠════════" at (0, 7).
-    // print "        ║                                            ║        " at (0, 8).
-    // print "════════╣                                            ╠════════" at (0, 9).
-    // print "        ║                                            ║        " at (0, 10).
-    // print "════════╣                                            ╠════════" at (0, 11).
-    // print "        ║                                            ║        " at (0, 12).
-    // print "════════╬════════════════════════════════════════════╬════════" at (0, 13).
-    // print "        ║ TASKS                                      ║        " at (0, 14).
-    // print "════════╣                                            ╠════════" at (0, 15).
-    // print "        ║                                            ║        " at (0, 16).
-    // print "════════╣                                            ╠════════" at (0, 17).
-    // print "        ║                                            ║        " at (0, 18).
-    // print "════════╣                                            ╠════════" at (0, 19).
-    // print "        ║                                            ║        " at (0, 20).
-    // print "════════╣                                            ╠════════" at (0, 21).
-    // print "        ║                                            ║        " at (0, 22).
-    // print "════════╣                                            ╠════════" at (0, 23).
-    // print "        ║                                            ║        " at (0, 24).
-    // print "════════╬════════════════════════════════════════════╬════════" at (0, 25).
-    // print " X CNCL ║                                            ║ M MAPV " at (0, 26).
-    // print "════════╣                                            ╠════════" at (0, 27).
-    // print " Q QUIT ║ >                                          ║ I INFO " at (0, 28).
-
     print " [KATE] │                                            │ V0.8.4 " at (0, 0).
     print "════════╬════════════════════════════════════════════╬════════" at (0, 1).
     print "        │ MODULES                                    │        " at (0, 2).
@@ -286,6 +259,8 @@ local function KateUi_drawMainFrame {
     print " X CNCL │                                            │ M MAPV " at (0, 26).
     print "────────╣                                            ╠────────" at (0, 27).
     print " Q QUIT │ >                                          │ I INFO " at (0, 28).
+    if not this:standby print "STBY" at (3, 28).
+    set this:shellUpdateToken to 0. // Refresh shell next time
 }
 
 local function KateUi_drawMainContent {
@@ -300,10 +275,25 @@ local function KateUi_drawMainContent {
     local sysInfo is ("M" + runtime:messageQueue:messageCount() + " P" + runtime:messageQueue:messageCount() + " @" + config:ipu). 
     print sysinfo:padright(14) + now:padleft(28) at (10, 0).
 
-    if time - this:statusTime > MAX_STATUS_MESSAGE_AGE {
-        this:setStatus("").
-    }
-    print this:status:padRight(40) at (10, 26).
+    //if time - this:statusTime > MAX_STATUS_MESSAGE_AGE {
+    //    this:setStatus("").
+    //}
+    //print this:status:padRight(40) at (10, 26).
+}
+
+local function KateUi_drawShell {
+    parameter this,
+              runtime.
+    
+    local shell is runtime:shell.
+    if (this:shellUpdateToken = shell:changeToken) return 0.
+
+    local output is shell:output.
+    local command is shell:currentCommand().
+    print output[0]:padright(40) at (10, 26).
+    print output[1]:padright(40) at (10, 27).
+    print ("> " + command):padright(40) at (10, 28).
+    set this:shellUpdateToken to shell:changeToken.
 }
 
 local function KateUi_setStatus {

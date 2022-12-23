@@ -45,7 +45,7 @@ local function KateSteering_enable {
             set sasMode to newSasMode.
             rcs off.
         } else {
-            KATE:ui:setStatus("Cannot activate SAS with mode " + newSasMode).
+            KATE:log("Cannot activate SAS with mode " + newSasMode).
             set this:mode to STEERING_KOS_BUILTIN.
             sas off.
             rcs on.

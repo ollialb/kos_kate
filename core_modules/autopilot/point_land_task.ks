@@ -8,22 +8,23 @@ include ("kate/library/kate_averaged_value").
 include ("kate/library/kate_impact_predictor").
 include ("kate/library/kate_atmosphere").
 include ("kate/library/kate_terrain").
+include ("kate/library/kate_datums").
 
 local DRAW_VECTORS to true.
 
-local STATE_INIT is "Initializing".
-local STATE_COAST_TO_DEORBIT is "Await De-Orbit".
-local STATE_ORBIT_ADJUSTMENT is "Adjust Orbit".
-local STATE_DEORBIT is "De-Orbit".
-local STATE_LAND is "Land".
-local STATE_FINISHED is "Finished".
+local STATE_INIT is "INIT".
+local STATE_COAST_TO_DEORBIT is "WAIT DOBT".
+local STATE_ORBIT_ADJUSTMENT is "ADJS ORBT".
+local STATE_DEORBIT is "DEOBT".
+local STATE_LAND is "LAND".
+local STATE_FINISHED is "DONE".
 
-local SUBSTATE_NONE is "-".
-local SUBSTATE_ORBIT_ADJUSTMENT_INC is "Inclination".
-local SUBSTATE_ORBIT_ADJUSTMENT_DEORBIT_ALTITUDE is "Altitude".
-local SUBSTATE_LAND_ALIGN is "Align".
-local SUBSTATE_LAND_SUICIDE_BURN is "Suicide Burn".
-local SUBSTATE_LAND_FINAL is "Final".
+local SUBSTATE_NONE is "----".
+local SUBSTATE_ORBIT_ADJUSTMENT_INC is "INCL".
+local SUBSTATE_ORBIT_ADJUSTMENT_DEORBIT_ALTITUDE is "ALTD".
+local SUBSTATE_LAND_ALIGN is "ALGN".
+local SUBSTATE_LAND_SUICIDE_BURN is "SBRN".
+local SUBSTATE_LAND_FINAL is "FINL".
 
 local MAX_WALL_TEMP is 1500.
 local INFINITE_TIME is 1000000000.
@@ -57,7 +58,7 @@ global function KatePointLandTask {
     this:def("finalSteering", KatePointLandTask_finalSteering@).
 
     // Initialize variables, which may be used by UI
-    set this:uiContentHeight to 10.
+    set this:uiContentHeight to 7.
 
     set this:state to STATE_INIT.
     set this:message to "-".
@@ -120,25 +121,25 @@ local function KatePointLandTask_uiContent {
     parameter   this.
     local result is list().
 
-    result:add(("State      : " + this:state):padright(20) + " [" + this:subState + "]" + (choose " [ATM]" if this:hasAtmosphere else "") + (choose " [LOW]" if this:lowDeorbit else "")).
-    result:add("Message    : " + this:message).
-    result:add(("Tgt Lat: " + round(this:targetPosition:lat, 4) + " °"):padright(20)     + ("  Lng: " + round(this:targetPosition:lng, 4) + " °"):padright(20) + "  Elv: " + round(this:targetElevation, 0) + " m").
-    result:add(("Own Lat: " + round(this:shipPosition:lat, 4) + " °"):padright(20)       + ("  Lng: " + round(this:shipPosition:lng, 4) + " °"):padright(20)   + "  Alt: " + kate_prettyDistance(this:shipClearAltitude, 1)).
-    result:add(("Sfc Dst: " + kate_prettyDistance(this:surfaceDistance, 1)):padright(20) + ("  Dst: " + kate_prettyDistance(this:targetPosition:distance, 1)):padright(20) + "  Snk: " + kate_prettySpeed(ship:verticalspeed, 1)).
-    result:add(("Sfc Spd: " + kate_prettySpeed(this:surfaceSpeed, 1)):padright(20)       + ("  Hdg: " + round(this:targetPosition:heading, 1)):padright(20)    + "  TWR: " + round(this:availableEngineAcceleration / this:gravity, 2)).
-    result:add(("Slope  : " + round(this:targetPositionSlope, 1) + " °"):padright(20)    + ("  Drg: " + round(this:dragForce / 1000, 1) +  " kN"):padright(20) + "  WTp: " + round(this:wallTemperature, 0) + " K").
+    local COL is 14.
+
+    result:add(this:state + " [" + this:subState + "]" + (choose " [ATM]" if this:hasAtmosphere else "") + (choose " [LOW]" if this:lowDeorbit else "") + " " + this:message:padright(30)).
+    result:add(kate_datum("LAT", UNIT_DEGREE, this:targetPosition:lat, 4, COL)   + kate_datum("LNG", UNIT_DEGREE, this:targetPosition:lng, 4, COL)         + kate_datum("ELV", UNIT_DISTANCE, this:targetElevation, 2, COL)).
+    result:add(kate_datum("DTT", UNIT_DISTANCE, this:surfaceDistance, 1, COL)    + kate_datum("TPT", UNIT_DISTANCE, this:targetPosition:distance, 1, COL)  + kate_datum("VSP", UNIT_SPEED, ship:verticalspeed, 1, COL)).
+    result:add(kate_datum("HSP", UNIT_SPEED, this:surfaceSpeed, 1, COL)          + kate_datum("HDG", UNIT_DEGREE, this:targetPosition:heading, 1, COL)     + kate_datum("TWR", UNIT_NONE, this:availableEngineAcceleration / this:gravity, 2, COL)).
+    result:add(kate_datum("SLO", UNIT_DEGREE, this:targetPositionSlope, 1, COL)  + kate_datum("DRG", UNIT_FORCE, this:dragForce, 1, COL)                   + kate_datum("TMP", UNIT_TEMPERATURE, this:wallTemperature, 0, COL)).
     if this:state = STATE_ORBIT_ADJUSTMENT or this:state = STATE_COAST_TO_DEORBIT {
-        result:add(("Tgt Rot: " + kate_prettySpeed(this:targetRotationalVelocity, 1)):padright(20) + ("  Azm: " + round(this:targetAzimuth, 2) + " °"):padright(20)             + "  Thr: " + round(this:throttle*100, 1) + " %").
-        result:add(("Crs Err: " + round(this:courseError, 2) + " °"):padright(20)                  + ("  DOD: " + kate_prettyDistance(this:deorbitDistance, 1)):padright(20)    + "  DOA: " + kate_prettyDistance(this:deorbitAltitude, 1)).
+        result:add(kate_datum("ROT", UNIT_SPEED, this:targetRotationalVelocity, 1, COL)    + kate_datum("AZI", UNIT_DEGREE, this:targetAzimuth, 2, COL)       + kate_datum("THR", UNIT_PERCENT, this:throttle*100, 1, COL)).
+        result:add(kate_datum("CER", UNIT_DEGREE, this:courseError, 2, COL)                + kate_datum("DOD", UNIT_DISTANCE, this:deorbitDistance, 1, COL)   + kate_datum("DOA", UNIT_DISTANCE, this:deorbitAltitude, 1, COL)).
     }
     if this:state = STATE_DEORBIT {
-        result:add(("Crs Err: " + round(this:courseError, 2) + " °"):padright(40) + "  Thr: " + round(this:throttle*100, 1) + " %").
+        result:add(kate_datum("CER", UNIT_DEGREE, this:courseError, 2, COL) + kate_datum("THR", UNIT_PERCENT, this:throttle*100, 1, COL) + "                       ").
         result:add("":padright(60)).
     }
     if this:state = STATE_LAND {
         local impactToTargetDistance is (this:impactPosition - this:targetPosition:position):mag.
-        result:add(("Scd Brn: " + kate_prettyTime(this:suicideBurnTime)):padright(20)                               + ("  Alt: " + kate_prettyDistance(this:suicideBurnAltitude, 2)):padright(20) + "  Thr: " + round(this:throttle*100, 1) + " %").
-        result:add(("Imp ETA: " + kate_prettyTime(TimeSpan(time:seconds - this:impactTime:seconds))):padright(20)   + ("  Dst: " + kate_prettyDistance(impactToTargetDistance, 2)):padright(20) + "                    ").
+        result:add(("BRN " + kate_prettyTime(this:suicideBurnTime)):padright(COL)                               + kate_datum("ALT", UNIT_DISTANCE, this:suicideBurnAltitude, 2, COL) + kate_datum("THR", UNIT_PERCENT, this:throttle*100, 1, COL)).
+        result:add(("ETA " + kate_prettyTime(TimeSpan(time:seconds - this:impactTime:seconds))):padright(COL)   + kate_datum("DST" , UNIT_DISTANCE, impactToTargetDistance, 2, COL)  + kate_datum("RAD", UNIT_DISTANCE, this:shipClearAltitude, 1, COL)).
     }
     return result.
 }
@@ -378,7 +379,7 @@ local function KatePointLandTask_onCyclic {
         local deceleration is max(0.0001, this:availableEngineAcceleration).
         local decelerationBurnTime is TimeSpan((this:surfaceSpeed - this:targetRotationalVelocity) / deceleration).
         local decelerationDistance is 0.5 * availableThrust / ship:mass * (decelerationBurnTime:seconds)^2.
-        set this:deorbitDistance to decelerationDistance * 1.1. // Include a 10% safety margin
+        set this:deorbitDistance to decelerationDistance.// * 1.02. // Include a 2% safety margin
 
         if this:surfaceDistance < this:deorbitDistance {
             set this:message to "Starting de-orbit.".
@@ -390,6 +391,8 @@ local function KatePointLandTask_onCyclic {
     // Burn retrograde until orbit intersection with surface is close to target point
     // or orbit retrograde is getting close to vertical.
     if this:state = STATE_DEORBIT {
+        this:stageOnDemand().
+
         local lastImpactPosition is this:impactPredictor:averagedEstimatedImpactPosition().
         set this:impactPosition to lastImpactPosition:position.
         set this:impactTime to lastImpactPosition:time.
@@ -401,7 +404,7 @@ local function KatePointLandTask_onCyclic {
         local impactGeopositionDistance is this:greatCircleDistance(impactGeoposition, this:shipPosition).
         local deorbitImpactError is impactGeopositionDistance - this:surfaceDistance.
 
-        set this:message to "Deorbiting, impact distance: " + kate_prettyDistance(impactToTargetDistance, 1).
+        set this:message to "Deorbit - Error: " + kate_prettyDistance(impactToTargetDistance, 1).
         set this:steering to (retrograde:vector + 10 * this:errorCorrection * ship:facing:starvector):normalized.
         this:alignedAcceleration(max(this:surfaceSpeed / 10, deorbitImpactError / 200)).
 
@@ -415,12 +418,14 @@ local function KatePointLandTask_onCyclic {
     }
 
     if this:state = STATE_LAND {
+        this:stageOnDemand().
+
         local lastImpactPosition is this:impactPredictor:averagedEstimatedImpactPosition().
         set this:impactPosition to lastImpactPosition:position.
         set this:impactTime to lastImpactPosition:time.
 
         local impactToTargetDistance is (this:impactPosition - this:targetPosition:position):mag.
-        set this:message to "Precision landing, impact distance: " + kate_prettyDistance(impactToTargetDistance, 1).
+        set this:message to "Land - Error: " + kate_prettyDistance(impactToTargetDistance, 1).
 
         // Calculate suicide burn altitude
         local engineDeceleration is max(0.0001, this:availableEngineAcceleration).
@@ -493,7 +498,7 @@ local function KatePointLandTask_onCyclic {
                 this:finalSteering(upVector:normalized + 0.5 * abs(this:errorCorrection) * errorVector:normalized, -10).
             } else if this:shipClearAltitude < (this:suicideBurnAltitude + 500) {
                 set this:message to "Final - last 1000 m                  ".
-                this:finalSteering(upVector:normalized + abs(this:errorCorrection) * errorVector:normalized, -20).
+                this:finalSteering(upVector:normalized + 1 * abs(this:errorCorrection) * errorVector:normalized, -20).
             } else {
                 set this:message to "Final - coasting                     ".
                 set this:steering to ship:srfretrograde:vector:normalized.
@@ -610,8 +615,8 @@ local function KatePointLandTask_alignedAcceleration {
         local neededThrottle is min(1, desiredAcceleration / maxAcceleration).
         this:alignedThrottle(neededThrottle).
     } else {
-        set this:message to "No thrust available... aborting!".
-        set this:state to STATE_FINISHED.
+        set this:message to "No thrust available!".
+        //set this:state to STATE_FINISHED.
     }
 }
 

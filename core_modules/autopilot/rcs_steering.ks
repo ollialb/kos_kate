@@ -59,11 +59,11 @@ local function KateRcsSteering_uiContent {
     local portStatus is choose this:ownPort:state if this:ownPort <> 0 else "N/A".
 
     result:add("RCS: " + this:state + " to '" + (this:target):name + "'").
-    result:add(("Dist   :  " + round(this:distance,1) + " m"):padright(20)   + "Port   : " + portStatus). 
-    result:add(("DUp    :  " + round(this:upError,1) + " m"):padright(20)    + "VUp    : " + round(this:upVel,1) + " m/s").
-    result:add(("DFore  :  " + round(this:foreError,1) + " m"):padright(20)  + "VFore  : " + round(this:foreVel,1) + " m/s").
-    result:add(("DStbd  :  " + round(this:stbdError,1) + " m"):padright(20)  + "VStbd  : " + round(this:stbdVel,1) + " m/s").
-    result:add(("StAng  :  " + round(this:steeringAngle,1)      + " °"):padright(20)  + "AppVel : " + round(this:relativeVelocity:mag,1)   + " m/s").
+    result:add(("Dist   :  " + round(this:distance,1) + " m"):padright(14)   + "Port   : " + portStatus). 
+    result:add(("DUp    :  " + round(this:upError,1) + " m"):padright(14)    + "VUp    : " + round(this:upVel,1) + " m/s").
+    result:add(("DFore  :  " + round(this:foreError,1) + " m"):padright(14)  + "VFore  : " + round(this:foreVel,1) + " m/s").
+    result:add(("DStbd  :  " + round(this:stbdError,1) + " m"):padright(14)  + "VStbd  : " + round(this:stbdVel,1) + " m/s").
+    result:add(("StAng  :  " + round(this:steeringAngle,1)      + " °"):padright(14)  + "AppVel : " + round(this:relativeVelocity:mag,1)   + " m/s").
     result:add("RCSThr :  " + this:rcsAvailableThrust + " kN").
 }
 

@@ -239,8 +239,9 @@ local function KateShip_bounds {
 
 local function KateShip_radarAltitude {
     parameter   this.
-
-    return this:bounds():bottomaltradar.
+    local boundsRadar is this:bounds():bottomaltradar.
+    local cogAltitude is ship:altitude - ship:geoposition:terrainheight.
+    return min(cogAltitude, boundsRadar).
 }
 
 local function KateShip_areaPrograde {

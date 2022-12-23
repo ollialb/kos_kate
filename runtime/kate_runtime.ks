@@ -6,6 +6,7 @@ include("kate/messages/kate_messagequeue").
 include("kate/runtime/kate_task_process").
 include("kate/runtime/kate_remote_process").
 include("kate/ui/kate_ui").
+include("kate/shell/kate_shell").
 
 local PROCESS_COOLOFF_TIME_UI is TimeSpan(10).
 local PROCESS_COOLOFF_TIME_WORKER is TimeSpan(0).
@@ -25,6 +26,7 @@ global function KateRuntime {
     set this:stopped to false.
     set this:processCooloffTime to PROCESS_COOLOFF_TIME_WORKER.
     set this:runsUi to false.
+    set this:shell to KateShell(this).
 
     this:def("main", KateRuntime_main@).
     this:def("quit", KateRuntime_quit@).
@@ -63,6 +65,7 @@ local function KateRuntime_main {
 
     print "Initializing modules...".
     this:createModules().
+    this:log("KATE running...").
 
     print "Starting main loop...".
     until this:stopped {
@@ -126,7 +129,7 @@ local function KateRuntime_startTask {
     this:processes:add(taskProcess).
 
     this:ui:safeCall2("addProcess", taskProcess, task:uiContentHeight).
-    this:log("Starting task process " + taskProcess:id).
+    this:log("Started process " + taskProcess:id).
 
     return taskProcess.
 }
@@ -140,6 +143,7 @@ local function KateRuntime_runProcesses {
         process:safeCall0("work").
         if process:finished {
             if process:lastExecTime + this:processCooloffTime < time {
+                this:log("Finished process " + process:id).
                 cleanupProcesses:add(process).
             }
         }
@@ -160,6 +164,8 @@ local function KateRuntime_runProcesses {
 
 local function KateRuntime_abortProcesses {
     parameter this.
+
+    this:log("Halting all active processes").
 
     for process in this:processes {
         process:safeCall0("stop").
@@ -287,7 +293,8 @@ local function KateRuntime_log {
     if not ((this:config):cpu):ui {
         print time:full + " - " + text.
     } else {
-        this:ui:safeCall1("setStatus", text).
+        //this:ui:safeCall1("setStatus", text).
+        this:shell:safeCall1("println", text).
     }
 }
 

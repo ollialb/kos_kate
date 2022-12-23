@@ -52,17 +52,53 @@ local function KateThrusterSteering_uiContent {
     parameter   this,
                 result. // list
 
-    result:add("Main Engine Steering: " + this:state + " to '" + (this:target):name + "'").
-    result:add(("DX     :  " + round(this:relativePosition:x,1) + " m"):padright(20)  + "VX     : " + round(this:relativeVelocity:x,1) + " m/s").
-    result:add(("DY     :  " + round(this:relativePosition:y,1) + " m"):padright(20)  + "VY     : " + round(this:relativeVelocity:y,1) + " m/s").
-    result:add(("DZ     :  " + round(this:relativePosition:z,1) + " m"):padright(20)  + "VZ     : " + round(this:relativeVelocity:z,1) + " m/s").
-    result:add(("IcAng  :  " + round(this:interceptAngle,1)     + " °"):padright(20)  + "AppVel : " + round(this:relativeVelocity:mag,1)   + " m/s").
-    result:add(("Throtl :  " + round(this:throttle*100,0)       + " %"):padright(20)  + "AppVel : " + round(this:relativeVelocity:mag,1)   + " m/s").
-    result:add(("DeclT  :  " + round(this:decelerationTime,1)   + " s"):padright(20)  + "MCD    : " + round(this:maxCoastingDistance,1)   + " m").
+    result:add("M_ENG STRNG [" + this:state + "]: '" + (this:target):name + "'").
+    result:add(kate_datum("DX ", UNIT_DISTANCE, this:relativePosition:x,1)   + kate_datum("VX ", UNIT_VELOCITY, this:relativeVelocity:x,1)).
+    result:add(kate_datum("DY ", UNIT_DISTANCE, this:relativePosition:y,1)   + kate_datum("VY ", UNIT_VELOCITY, this:relativeVelocity:y,1)).
+    result:add(kate_datum("DZ ", UNIT_DISTANCE, this:relativePosition:z,1)   + kate_datum("VZ ", UNIT_VELOCITY, this:relativeVelocity:z,1)).
+    result:add(kate_datum("ANG", UNIT_DEGREE, this:interceptAngle,1)         + kate_datum("VEL", UNIT_VELOCITY, this:relativeVelocity:mag,1)).
+    result:add(kate_datum("T_D ", UNIT_SECONDS, this:decelerationTime,1)     + kate_datum("MCD", UNIT_DISTANCE, this:maxCoastingDistance,1)).
 }
 
 local function KateThrusterSteering_onCyclic {
     parameter   this.
+
+    // Basic approach is to have three maneuvers
+    //   
+    //    TGT
+    //    P^  \
+    //     |    V
+    //     |
+    //     |
+    //    SHP --> I
+    //
+    // 1) Choose intercept course to estimated position using a given delta-v
+    // The basic integral of distance over acceleration is for the accel and decel segments
+    //       S_acc = 1/2 a I t_burn^2
+    //       S_dec = 1/2 a I t_burn^2
+    // The total distance covered after accel burn, coasting and decel burn is 
+    //       S_acc + S_dec + S_coast = 2 1/2 a I t_burn^2 + a I t_burn t_coast = a I t_burn (t_burn + t_coast)
+    //
+    // Assuming we normalize the coordinate system so that the ship's initial position and speed are zero, we get
+    // the target and ship positions at intercept time ti as
+    //       P_target_ti = P0 + V (2 t_burn + t_coast)
+    //       P_ship_ti = a I t_burn (t_burn + t_coast)
+    //
+    // The condition for interception is then
+    //       p_target(t) = p_ship(t)
+    // <=>   P + V (2 t_burn + t_coast) = a I t_burn (t_burn + t_coast)
+    // <=>   P + V (2 t_burn + t_coast) - a I t_burn (t_burn + t_coast) = 0    (1)
+    //
+    // The delta_v we want to invest is a user parameter and with that we get a burn time as
+    //       t_burn = 0.5 delta_v / a
+    // If we enter this into (1) we get with V = v_target, d = deltav, c = t_coast, p = p_target_0
+    //       P + V (d / a + c) - a I 0.5 d / a (0.5 d / a + c) = 0
+    // <=>   P + V d / a + V c - 0.25 I d^2 / a + 0.5 I d c = 0
+    //
+    // We also need to turn the ship midways and therefore have the constraint
+    //       c >= TURN_TIME
+    // and therefore get an entry constraint for our maneuver
+    //       (-4 a p_target_0 + delta_v^2 - 2 delta_v v_target)/(4 a v_target - 2 a delta_v) >= TURN_TIME 
 
     // Approach point is current position plus offset
     set this:approachPoint to (this:target):position + this:approachOffset.

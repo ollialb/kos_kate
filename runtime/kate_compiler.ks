@@ -69,11 +69,10 @@ local function KateCompiler_compileVolumeDirectory {
                     print "ERROR: Not enough space on target volume (" + targetVolume:freeSpace + " bytes)!         " at (0, 4).
                     return false.
                 }
-                print "Compiling: " + sourceFileName + "                 " at (0, 4).
-                print "to" + targetFileName + "                 " at (0, 4).
+                print "Compiling: " + fileName + "                 " at (0, 4).
                 compile sourceFileName to targetFileName.
             } else if isDirectory and not isHidden {
-                print "Scanning: " + fileName + "                 " at (0, 3).
+                print "Directory: " + fileName + "                 " at (0, 3).
                 set error to this:compileVolumeDirectory(sourceFileName, fileInSourceDir, targetVolume, targetDirPath + "/" + fileName) or error.
             }
         }

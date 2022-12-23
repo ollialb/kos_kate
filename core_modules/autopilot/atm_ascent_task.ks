@@ -39,7 +39,7 @@ global function KateAtmosphericAscentTask {
 
     // Helpers
     set this:ownship to KateShip().
-    set this:uiContentHeight to 9. 
+    set this:uiContentHeight to 7. 
 
     // Initialize variables, which may be used by UI
     set this:state to STATE_INIT.
@@ -66,12 +66,12 @@ local function KateAtmosphericAscentTask_uiContent {
     parameter   this.
     
     local result is list().
-    result:add("CNT " + this:controlLaw + ": " + this:state).
-    kate_prettyAtmosphere(this:atmos, result).
-    result:add(kate_datum(" AP", UNIT_DISTANCE, obt:apoapsis, 1) + "BDY" + obt:body:name).
-    result:add(kate_datum("LIM", UNIT_DISTANCE, this:effectiveAtmosphereAltitude, 1)).
-    result:add("THR " + round(this:throttle * 100, 1) + "%").
-    result:add("").
+    result:add("[" + this:controlLaw + "] " + this:state).
+    //kate_prettyAtmosphere(this:atmos, result).
+    result:add(kate_datum(" AP", UNIT_DISTANCE, obt:apoapsis, 1) + " [TGT " + this:targetAp + "]").
+    result:add(kate_datum("LOA", UNIT_DISTANCE, this:effectiveAtmosphereAltitude, 1) + " THR " + round(this:throttle * 100, 1) + " %").
+    result:add(kate_datum("  Q", UNIT_ATMOSPHERE, ship:q, 1) + " [LIM " + round(this:maxQ, 1) + "]").
+    result:add(kate_datum("TMP", UNIT_TEMPERATURE, this:atmos:wallTemperature, 1) + " [LIM " + round(this:maxWallTemperature, 1) + "]").
     result:add(this:message).
     return result.
 }

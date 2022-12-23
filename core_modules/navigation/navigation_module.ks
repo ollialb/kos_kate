@@ -160,7 +160,7 @@ local function KateCoreNavigationModule_doRsvpRequest {
     } else if this:rsvpDirectlyAvailable {
         this:createAndStartTaskWithParameterInput(runtime, "RSVPS", params).
     } else {
-       KATE:ui:setStatus("No RSVP installation found!").
+       KATE:log("No RSVP installation found!").
     }
 }
 
