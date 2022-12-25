@@ -21,19 +21,24 @@ global function KateDockingTask {
     local this is KateCyclicTask("KateDockingTask", "DOCKG", 0.01).
 
     // Member variables
-    set this:uiContentHeight to 10.
+    set this:uiContentHeight to 8.
     set this:state to STATE_INIT.
     set this:ownPort to 0.
     set this:targetVessel to 0.
     set this:message to "".
     set this:approachSteering to 0.
     set this:dockingSteering to 0.
+    set this:ownship to KateShip().
+
+    this:declareParameter("autoPortSelect", "x", "auto port [x]: ").
 
     this:override("uiContent", KateDockingTask_uiContent@).
     
     this:def("onActivate", KateDockingTask_onActivate@).
     this:def("onDeactivate", KateDockingTask_onDeactivate@).
     this:def("onCyclic", KateDockingTask_onCyclic@).
+
+    this:def("selectPort", KateDockingTask_selectPort@).
 
     return this.
 }
@@ -58,6 +63,9 @@ local function KateDockingTask_uiContent {
 local function KateDockingTask_onActivate {
     parameter   this.
 
+    set ship:control:neutralize to true.
+    unlock steering.
+    unlock throttle.
     rcs on.
     sas off.
 }
@@ -65,6 +73,7 @@ local function KateDockingTask_onActivate {
 local function KateDockingTask_onDeactivate {
     parameter   this.
 
+    set ship:control:neutralize to true.
     unlock steering.
     unlock throttle.
     rcs off.
@@ -83,13 +92,29 @@ local function KateDockingTask_onCyclic {
     }
 
     if this:state = STATE_INIT {
+        // Get own docking port
+        set this:ownPort to this:ownship:getMainDockingPort().
+        if (this:ownPort):isType("DockingPort") {
+            (this:ownPort):controlFrom().
+        }
+
         // Identify target type
         set this:target to target.
         if (this:target):isType("Vessel") {
             set this:targetVessel to this:target.
             set this:message to "Target is vessel".
+            
+            local autoPortSelect is this:getBooleanParameter("autoPortSelect").
+            if autoPortSelect {
+                local type is choose (this:ownPort):nodeType if (this:ownPort):isType("DockingPort") else "none".
+                local matchingPort is this:selectPort(this:target, type).
+                if matchingPort:isType("DockingPort") {
+                    set this:target to matchingPort.
+                    set this:message to "Auto-selected port".
+                }
+            }
         } else if (this:target):isType("DockingPort") {
-            set this:targetvessel to (this:target):ship.
+            set this:targetVessel to (this:target):ship.
             set this:message to "Target is docking port".
         } else {
             set this:message to "Unknown target type".
@@ -98,17 +123,7 @@ local function KateDockingTask_onCyclic {
     }
 
     if this:state = STATE_INIT {
-        // Identify docking mode
-        if ship:dockingports:length > 0 and (this:target):isType("DockingPort") {
-            set this:ownPort to ship:dockingports[0].
-            // Set a point 
-            if facing:vector:normalized <> (this:ownPort):facing:vector:normalized {
-                this:ownPort:controlfrom().
-                set this:message to "Switched control to own docking port: " + this:ownPort:name.
-            }
-        } else {
-            set this:ownPort to 0.
-        }
+        // Choose initial control mode
         local targetDistance is (this:target:position - ship:position):mag.
         if targetDistance > MAX_RCS_DIST {
             local approachOffset is MAX_APPROACH_DIST * (this:target):facing:forevector:normalized.
@@ -138,12 +153,31 @@ local function KateDockingTask_onCyclic {
     if this:state = STATE_DOCKING and this:dockingSteering <> 0 {
         this:dockingSteering:safeCall0("onCyclic").
         if this:dockingSteering:finished {
-             set this:dockingSteering to 0.
+            set this:dockingSteering to 0.
             set this:state to STATE_FINISHED.
         }
     }
 
     if this:state = STATE_FINISHED {    
+        unlock steering.
+        unlock throttle.
+        rcs off.
+        sas on.
+        set ship:control:neutralize to true.
         this:finish().
     }
+}
+
+local function KateDockingTask_selectPort {
+    parameter   this,
+                targetVessel,
+                type.
+
+    local allParts to targetVessel:parts.
+    for part in allParts {
+        if part:isType("DockingPort") and part:state = "Ready" and part:nodeType = type {
+            return part.
+        }
+    }
+    return 0.
 }

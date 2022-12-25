@@ -34,6 +34,8 @@ global function KateShip {
     this:def("hasAirbreathingEngines", KateShip_hasAirbreathingEngines@).
     this:def("activateOtherLocalProcessors", KateShip_activateOtherLocalProcessors@).
     this:def("otherLocalProcessorsActive", KateShip_otherLocalProcessorsActive@).
+    this:def("getAllDockingPorts", KateShip_getAllDockingPorts@).
+    this:def("getMainDockingPort", KateShip_getMainDockingPort@).
     
     return this.
 }
@@ -301,4 +303,40 @@ local function KateShip_otherLocalProcessorsActive {
         }
     }
     return false.
+}
+
+local function KateShip_getAllDockingPorts {
+    parameter this.
+
+    local allDockingPorts is list().
+    local allParts is this:ownship:parts.
+    for part in allParts {
+        if part:isType("DockingPort") {
+            allDockingPorts:add(part).
+        }
+    }
+    return allDockingPorts.
+}
+
+// Searches for the a docking port which matches all of the following criteria
+//  1) Port has the given state (default: Ready)
+//  2) Port has the given tag (default: "")
+//  3) Port has the given facing (default: ship's facing), set to "None" if no match desired.
+// If no match was found 0 is returned.
+local function KateShip_getMainDockingPort {
+    parameter this,
+              state is "Ready",
+              tag is "",
+              facingVector is this:ownship:facing:vector.
+
+    local allPorts is this:getAllDockingPorts().
+    for port in allPorts {
+        local matchesState is port:state = state.
+        local matchesTag is port:tag = tag.
+        local matchesFacing is choose vAng(facingVector, port:facing:vector) < 1 if facingVector:isType("Vector") else true.
+        if matchesState and matchesTag and matchesFacing {
+            return port.
+        }
+    }
+    return 0.
 }
