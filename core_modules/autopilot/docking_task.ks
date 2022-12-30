@@ -15,6 +15,7 @@ local MAX_APPROACH_THROTTLE is 0.1. // 10%
 local MAX_CLOSING_SPEED is 20.0. // m/s
 local MAX_APPROACH_DIST is 50.0. // m
 local MAX_RCS_DIST is 200.0. // m
+local MAX_RCS_SPEED is 2.0. // m/s
 local MAX_DOCKING_DIST is 1.0. // m 
 
 global function KateDockingTask {
@@ -125,15 +126,16 @@ local function KateDockingTask_onCyclic {
     if this:state = STATE_INIT {
         // Choose initial control mode
         local targetDistance is (this:target:position - ship:position):mag.
-        if targetDistance > MAX_RCS_DIST {
+        local targetVelocity is (this:targetVessel:velocity:orbit - ship:velocity:orbit):mag.
+        if targetDistance > MAX_RCS_DIST or targetVelocity > MAX_RCS_SPEED {
             local approachOffset is MAX_APPROACH_DIST * (this:target):facing:forevector:normalized.
-            set this:approachSteering to KateThrusterSteering(this:target, approachOffset, MAX_APPROACH_THROTTLE, MAX_CLOSING_SPEED, true).
+            set this:approachSteering to KateThrusterSteering(this:target, approachOffset, MAX_APPROACH_THROTTLE, MAX_CLOSING_SPEED, false).
             set this:state to STATE_APPROACH.
             rcs on.
             sas off.
         } else {
             local dockingOffset is MAX_DOCKING_DIST * (this:target):facing:forevector:normalized.
-            set this:dockingSteering to KateRcsSteering(this:target, this:ownPort, dockingOffset, true).
+            set this:dockingSteering to KateRcsSteering(this:target, this:ownPort, dockingOffset, false).
             set this:state to STATE_DOCKING.
             rcs on.
             sas off.
@@ -145,7 +147,7 @@ local function KateDockingTask_onCyclic {
         if this:approachSteering:finished {
             set this:approachSteering to 0.
             local dockingOffset is MAX_DOCKING_DIST * (this:target):facing:forevector:normalized.
-            set this:dockingSteering to KateRcsSteering(this:target, this:ownPort, dockingOffset, true).
+            set this:dockingSteering to KateRcsSteering(this:target, this:ownPort, dockingOffset, false).
             set this:state to STATE_DOCKING.
         }
     }

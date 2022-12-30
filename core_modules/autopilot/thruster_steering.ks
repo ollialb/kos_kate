@@ -13,9 +13,8 @@ local STATE_APPROACH_DONE is "DONE".
 
 local DEFAULT_APPROACH_THROTTLE is 0.1. // 10%
 local DEFAULT_CLOSING_SPEED is 10.0. // m/s
-local FINAL_TARGET_DISTANCE is 5.0. // m
+local FINAL_TARGET_DISTANCE is 10.0. // m
 local FINAL_TARGET_VELOCITY is 2.0. // m/s
-local FUTURE_POSITION_TIME is 10.0. // s
 
 global function KateThrusterSteering {
     parameter pTarget, // Orbitable
@@ -47,12 +46,13 @@ global function KateThrusterSteering {
     set this:finished to false.
     set this:state to STATE_APPROACH_INIT.
 
-    set this:velocityPid     to pidLoop(0.30, 0.0, 0.0, -pClosingSpeed, pClosingSpeed).
-    set this:throttlePid     to pidLoop(0.01, 0.001, 0.001, 0, 1).
+    set this:velocityPid     to pidLoop(0.30, 0.0,   0.0, -pClosingSpeed, pClosingSpeed).
+    set this:throttlePid     to pidLoop(0.05, 0.001, 0.001, 0, 1).
+    set this:accelerationPid to pidLoop(0.5,  0.001, 0.001).
 
     this:def("uiContent", KateThrusterSteering_uiContent@).
-    this:def("onCyclic", KateThrusterSteering_onCyclic2@).
-    this:def("alignedThrottle", KateThrusterSteering_alignedThrottle@).
+    this:def("onCyclic", KateThrusterSteering_onCyclic@).
+    this:def("alignedAcceleration", KateThrusterSteering_alignedAcceleration@).
 
     return this.
 }
@@ -70,102 +70,6 @@ local function KateThrusterSteering_uiContent {
 }
 
 local function KateThrusterSteering_onCyclic {
-    parameter   this.
-
-    // Basic approach is to have three maneuvers
-    //   
-    //    TGT
-    //    P^  \
-    //     |    V
-    //     |
-    //     |
-    //    SHP --> I
-    //
-    // 1) Choose intercept course to estimated position using a given delta-v
-    // The basic integral of distance over acceleration is for the accel and decel segments
-    //       S_acc = 1/2 a I t_burn^2
-    //       S_dec = 1/2 a I t_burn^2
-    // The total distance covered after accel burn, coasting and decel burn is 
-    //       S_acc + S_dec + S_coast = 2 1/2 a I t_burn^2 + a I t_burn t_coast = a I t_burn (t_burn + t_coast)
-    //
-    // Assuming we normalize the coordinate system so that the ship's initial position and speed are zero, we get
-    // the target and ship positions at intercept time ti as
-    //       P_target_ti = P0 + V (2 t_burn + t_coast)
-    //       P_ship_ti = a I t_burn (t_burn + t_coast)
-    //
-    // The condition for interception is then
-    //       p_target(t) = p_ship(t)
-    // <=>   P + V (2 t_burn + t_coast) = a I t_burn (t_burn + t_coast)
-    // <=>   P + V (2 t_burn + t_coast) - a I t_burn (t_burn + t_coast) = 0    (1)
-    //
-    // The delta_v we want to invest is a user parameter and with that we get a burn time as
-    //       t_burn = 0.5 delta_v / a
-    // If we enter this into (1) we get with V = v_target, d = deltav, c = t_coast, p = p_target_0 and I normalized intercept vector
-    //       P + V (d / a + c) - a I 0.5 d / a (0.5 d / a + c) = 0
-    // <=>   P + V d / a + V c - 0.25 I d^2 / a + 0.5 I d c = 0
-    //
-    // We also need to turn the ship midways and therefore have the constraint
-    //       c >= TURN_TIME
-    // and therefore get an entry constraint for our maneuver
-    //       (-4 a p_target_0 + delta_v^2 - 2 delta_v v_target)/(4 a v_target - 2 a delta_v) >= TURN_TIME 
-
-    // Approach point is current position plus offset
-    set this:approachPoint to (this:target):position + this:approachOffset.
-    // Target position vector relative to ownship
-    set this:relativePosition to (this:approachPoint - ship:position).
-    set this:relativeVelocity to ((this:targetVessel):velocity:orbit - ship:velocity:orbit).
-    // Distance and direction to aim point
-    set this:distance to this:relativePosition:mag.
-    set this:direction to lookDirUp(this:approachPoint, ship:velocity:orbit).
-    // Intercept vector
-    set this:interceptVector to this:direction:forevector*this:maxClosingSpeed + this:relativeVelocity.
-    set this:interceptAngle to vectorAngle(this:interceptVector, ship:facing:forevector).
-
-    if this:drawVecs {
-        clearVecDraws().
-        local posVec2 is vecDraw(ship:position, -this:relativeVelocity, rgb(0, 1, 0), "RVel", 10, true, 0.1, true, true).
-        local posVec3 is vecDraw(ship:position, this:interceptVector, rgb(0, 0, 1), "Icept", 10, true, 0.1, true, true).
-    }
-
-    if this:state = STATE_APPROACH_INIT {
-        // Steer directly to target
-        lock steering to this:interceptVector.
-        lock throttle to this:throttle.
-        set this:throttle to 0.
-        set this:state to STATE_APPROACH_ALIGN.
-    } else if this:state = STATE_APPROACH_ALIGN {
-        // Wait for alignment
-        if this:interceptAngle < 1.0 {
-            set this:state to STATE_APPROACH_ACCEL.
-        }
-    } else if this:state = STATE_APPROACH_ACCEL {
-        if this:relativeVelocity:mag < this:maxClosingSpeed {
-            set this:throttle to this:maxThrottle.
-        } else {
-            // Coast and turn around
-            local acceleration is availableThrust * this:maxThrottle / mass.
-            set this:decelerationTime to this:relativeVelocity:mag / acceleration.
-            set this:maxCoastingDistance to 0.5 * acceleration * this:decelerationTime^2.
-            set this:throttle to 0.
-            lock steering to this:relativeVelocity.
-            set this:state to STATE_APPROACH_COAST.
-        }
-    } else if this:state = STATE_APPROACH_COAST {
-        if this:distance < this:maxCoastingDistance {
-            set this:throttle to this:maxThrottle.
-            set this:state to STATE_APPROACH_DECEL.
-        }
-    } else if this:state = STATE_APPROACH_DECEL {
-        if this:relativeVelocity:mag < 1.0 {
-            set this:state to STATE_APPROACH_DONE.
-            set this:throttle to 0.
-        }
-    } else if this:state = STATE_APPROACH_DONE {
-        set this:finished to true.
-    }
-}
-
-local function KateThrusterSteering_onCyclic2 {
     parameter   this.
 
     // Basic approach is to come to a stop at the destination point and use low throttle/velocity
@@ -200,21 +104,27 @@ local function KateThrusterSteering_onCyclic2 {
             set this:throttle to 0.
             set this:state to STATE_APPROACH_DONE.
         } else {
-            local requiredVelocity is this:relativePosition / 10.
+            // Calculate closing velocity proportional to current distance.
+            local requiredVelocity is this:relativePosition / 30.
+            // Limit requested velocity
             if (requiredVelocity:mag > this:maxClosingSpeed) {
                 set requiredVelocity to requiredVelocity:normalized * this:maxClosingSpeed.
             }
+            // Total velocity need is closing velocity minus current velocity.
+            // Since relativeVelocity is for target to use, we need to invert it (+ sign below).
             local velocityError is requiredVelocity + this:relativeVelocity.
-            set this:interceptAngle to vectorAngle(requiredVelocity, this:relativeVelocity).
-            set this:interceptVector to velocityError.
+            local requiredAcceleration is this:accelerationPid:update(time:seconds, -velocityError:mag).
 
-            //set this:throttlePid:setPoint to requiredVelocity:mag.
-            local requiredThrottle is this:throttlePid:update(time:seconds, -velocityError:mag).
-            print requiredVelocity:mag at (10, 8).
-            print velocityError:mag at (10, 9).
-            print requiredThrottle at (10, 10).
-            set this:throttle to this:alignedThrottle(requiredThrottle).
-            print this:throttle at (28, 8).
+            // Figure out, where to point the ship
+            set this:interceptAngle to vectorAngle(requiredVelocity, this:relativeVelocity).
+            if (requiredAcceleration < 0) {
+                set this:interceptVector to -velocityError.
+            } else {
+                set this:interceptVector to velocityError.
+            }
+
+            // Set throttle & direction
+            this:alignedAcceleration(requiredAcceleration, 1, 0).
         }
     } else if this:state = STATE_APPROACH_DONE {
         clearVecDraws().
@@ -222,18 +132,17 @@ local function KateThrusterSteering_onCyclic2 {
     }
 }
 
-local function KateThrusterSteering_alignedThrottle {
+local function KateThrusterSteering_alignedAcceleration {
     parameter this,
-              desiredThrottle,
+              desiredAcceleration, // m/s^2
               alignmentAngle is 1, // °
-              alignmentThrottle is 0.05. // 5%
+              alignmentThrottle is 0.01. // 5%
 
     local steeringError is vAng(ship:facing:forevector, this:interceptVector).
-    print steeringError at (28, 10).
     if abs(steeringError) < alignmentAngle {
-        print ("FULL") at (28, 9).
-        return desiredThrottle.
+        local desiredThrottle is desiredAcceleration / ship:mass.
+        set this:throttle to desiredThrottle.
     } else {
-        return alignmentThrottle.
+        set this:throttle to alignmentThrottle.
     }
 }

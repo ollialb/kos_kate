@@ -4,11 +4,12 @@ include ("kate/modules/kate_cyclictask").
 include ("kate/library/kate_time_util").
 include ("kate/library/kate_ship").
 include ("kate/library/kate_steering").
+include ("kate/library/kate_datums").
 
-local STATE_INIT is "Initializing".
-local STATE_WAIT_BURN_START is "Waiting for burn start".
-local STATE_BURN is "Burning".
-local STATE_FINISHED is "Finished".
+local STATE_INIT is "INIT".
+local STATE_WAIT_BURN_START is "WAIT".
+local STATE_BURN is "BURN".
+local STATE_FINISHED is "DONE".
 
 global function KateExecNodeTask {
     local this is KateCyclicTask("KateExecNodeTask", "EXNOD", 0.01).
@@ -28,8 +29,9 @@ global function KateExecNodeTask {
     set this:nodeTime to TimeStamp().
     set this:burnStart to TimeStamp().
     set this:state to STATE_INIT.
+    set this:burnPhase to "-".
     set this:message to "-".
-    set this:uiContentHeight to 5.
+    set this:uiContentHeight to 1.
     set this:stagingMode to "AUTO".
 
     // Helpers
@@ -43,16 +45,13 @@ local function KateExecNodeTask_uiContent {
     parameter   this.
     local result is list().
 
+    local node is nextNode.
     local burnStartIn is this:burnStart - time.
 
-    result:add("Status     : " + this:state).
-    result:add("Message    : " + this:message).
     if this:state = STATE_INIT or this:state = STATE_WAIT_BURN_START {
-        result:add("  Burn (" + round(this:burnTime,2) + " s) in " + kate_prettyTime(burnStartIn)).
+        result:add(("T- " + kate_prettyTime(burnStartIn) + " "):padright(12)            + kate_datum("DV ", UNIT_SPEED, node:deltav:mag, 1)).
     } else if this:state = STATE_BURN {
-        result:add("Burn       : " + round(this:remainingActualBurnTime, 2) + " s").
-        result:add("Remaining  : " + round(this:remainingDeltaV,2) + " m/s").
-        result:add("Trottle    : " + round(this:throttle*100,1) + " % [" + this:burnPhase + "]").
+        result:add(("T+ " + kate_prettyTime(this:remainingActualBurnTime)):padright(12) + kate_datum("DV ", UNIT_SPEED, this:remainingDeltaV, 1)).
     } else if this:state = STATE_FINISHED {
         // Nothing
     }

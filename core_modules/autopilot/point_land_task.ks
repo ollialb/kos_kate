@@ -340,7 +340,7 @@ local function KatePointLandTask_onCyclic {
                     set this:steering to heading(this:surfaceVelocityHeading + 90, 0, 0):vector.
                 }
                 set this:message to "Burning for orbit inclination change.".
-                this:alignedAcceleration(abs(this:courseError)*50).
+                this:alignedAcceleration(abs(this:courseError)*50, 5, 0.01).
             }
         } 
         
@@ -608,12 +608,14 @@ local function KatePointLandTask_surfaceHeading {
 
 local function KatePointLandTask_alignedAcceleration {
     parameter this,
-              desiredAcceleration.
+              desiredAcceleration,
+              allowedDeviation is 90,
+              offAlignmentThrottleRatio is 0.2.
 
     local maxAcceleration is ship:availablethrust / ship:mass.
     if (maxAcceleration > 0) {
         local neededThrottle is min(1, desiredAcceleration / maxAcceleration).
-        this:alignedThrottle(neededThrottle).
+        this:alignedThrottle(neededThrottle, allowedDeviation, offAlignmentThrottleRatio).
     } else {
         set this:message to "No thrust available!".
         //set this:state to STATE_FINISHED.
@@ -622,14 +624,16 @@ local function KatePointLandTask_alignedAcceleration {
 
 local function KatePointLandTask_alignedThrottle {
     parameter this,
-              desiredThrottle.
+              desiredThrottle,
+              allowedDeviation is 90,
+              offAlignmentThrottleRatio is 0.2.
 
     local steeringError is vAng(ship:facing:forevector, this:steering).
-    if abs(steeringError) < 90 {
+    if abs(steeringError) < allowedDeviation {
         set this:throttle to min(1, desiredThrottle * cos(steeringError)).
     } else {
         set this:message to "Aligning thrust vector...".
-        set this:throttle to max(0.1, desiredThrottle*0.2).
+        set this:throttle to max(0.01, offAlignmentThrottleRatio * desiredThrottle).
     }
 }
 
