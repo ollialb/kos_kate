@@ -16,8 +16,9 @@ global function KateTask {
     set this:parameters to lexicon().
     set this:parameterDeclarations to lexicon().
     set this:finished to false.
-    set this:uiContentHeight to 1. 
+    set this:uiContentHeight to 1.
 
+    this:def("warpPoint", KateTask_warpPoint@). // returns: timestamp. 0 means none, negative means inhibit
     //set this:onActivate to KateTask_onActivate@:bind(this). 
     //set this:onDeactivate to KateTask_onDeactivate@:bind(this). 
     //set this:onContinue to KateTask_onContinue@:bind(this). // returns next desired time of execution.
@@ -30,6 +31,12 @@ global function KateTask {
     this:def("finish", KateTask_finish@).
 
     return this.
+}
+
+// Default implementation
+local function KateTask_warpPoint {
+    parameter   this.
+    return TimeStamp(0).
 }
 
 // Default implementation

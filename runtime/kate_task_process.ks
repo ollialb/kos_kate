@@ -29,6 +29,8 @@ global function KateTaskProcess {
     this:def("start", KateTaskProcess_start@).
     this:def("stop", KateTaskProcess_stop@).
 
+    this:override("warpPoint", KateTaskProcess_warpPoint@).
+
     this:override("uiTitle", KateTaskProcess_uiTitle@).
     this:override("uiContent", KateTaskProcess_uiContent@).
 
@@ -97,6 +99,13 @@ local function KateTaskProcess_uiTitle {
     parameter this.
     local activeIndicator is choose "█ " if not this:finished else "░ ".
     return activeIndicator + this:id.
+}
+
+local function KateTaskProcess_warpPoint {
+    parameter this.
+    local theTask is this:task.
+    local result is theTask:optionalCall0("warpPoint").
+    return result.
 }
 
 local function KateTaskProcess_uiContent {

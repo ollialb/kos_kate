@@ -5,6 +5,7 @@ include("kate/config/kate_config").
 include("kate/messages/kate_messagequeue").
 include("kate/runtime/kate_task_process").
 include("kate/runtime/kate_remote_process").
+include("kate/runtime/kate_warp_assist").
 include("kate/ui/kate_ui").
 include("kate/shell/kate_shell").
 
@@ -27,6 +28,7 @@ global function KateRuntime {
     set this:processCooloffTime to PROCESS_COOLOFF_TIME_WORKER.
     set this:runsUi to false.
     set this:shell to KateShell(this).
+    set this:warpAssist to KateWarpAssist(this).
 
     this:def("main", KateRuntime_main@).
     this:def("quit", KateRuntime_quit@).
@@ -39,8 +41,9 @@ global function KateRuntime {
     this:def("deferMessageToModule", KateRuntime_deferMessageToModule@).
 
     this:def("startTask", KateRuntime_startTask@). // returns KateTaskProcess
-    this:def("abortProcesses", KateRuntime_abortProcesses@). // returns KateTaskProcess
+    this:def("abortProcesses", KateRuntime_abortProcesses@). 
     this:def("runProcesses", KateRuntime_runProcesses@).
+    this:def("activeProcesses", KateRuntime_activeProcesses@).
     this:def("runModules", KateRuntime_runProcesses@).
     this:def("processesForTask", KateRuntime_processesForTask@).
     this:def("requestStandby", KateRuntime_requestStandby@).
@@ -160,6 +163,20 @@ local function KateRuntime_runProcesses {
             this:ui:safeCall1("removeProcess", process).
         }
     }
+
+    this:warpAssist:safeCall0("updateWarpPoints").
+}
+
+local function KateRuntime_activeProcesses {
+    parameter this.
+
+    local activeProcesses is list().
+    for process in this:processes {
+        if not process:finished {
+           activeProcesses:add(process).
+        }
+    }
+    return activeProcesses.
 }
 
 local function KateRuntime_abortProcesses {

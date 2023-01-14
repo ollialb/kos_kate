@@ -18,6 +18,7 @@ global function KateVacuumAscentTask {
     this:declareParameter("apoapsis",      "150",   "apoapsis    [km]: ").
     this:declareParameter("safeElevation", "0.1",   "safe elev.  [km]: ").
     this:declareParameter("inclination",    "90",   "inclination  [°]: ").
+    this:declareParameter("stageAtLaunch",    "",   "stage@launch [x]: ").
 
     this:override("uiContent", KateVacuumAscentTask_uiContent@).
     
@@ -46,6 +47,7 @@ global function KateVacuumAscentTask {
     set this:targetAp to 150000.
     set this:targetInclination to 90.
     set this:safeElevation to 2000.
+    set this:stageAtLaunch to false.
 
     return this.
 }
@@ -77,6 +79,7 @@ local function KateVacuumAscentTask_onActivate {
     set this:targetInclination to this:getNumericalParameter("inclination").
     set this:targetAp to this:getNumericalParameter("apoapsis") * 1000.
     set this:safeElevation to this:getNumericalParameter("safeElevation") * 1000.
+    set this:stageAtLaunch to this:getBooleanParameter("stageAtLaunch").
     set this:turnStart to ship:altitude + this:safeElevation.
     set this:impactPredictor to KateImpactPredictor().
     set this:hasImpact to false.
@@ -109,7 +112,7 @@ local function KateVacuumAscentTask_onCyclic {
             if time > this:timeToLaunch {
                 set this:throttle to 1.
                 set this:state to STATE_VERTICAL.
-                stage.
+                if this:stageAtLaunch stage.
                 this:releaseClamps().
             } else {
                 local timeLeft is this:timeToLaunch - time.

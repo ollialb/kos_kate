@@ -127,6 +127,9 @@ local function KateUi_react {
         else if ch = "X" {
             runtime:abortProcesses().
         }
+        else if ch = "W" {
+            runtime:warpAssist:safeCall2("handleUiInput", runtime, ch).
+        }
         else if this:standby {
             set this:standby to false.
             runtime:requestStandby(false).
@@ -258,8 +261,10 @@ local function KateUi_drawMainFrame {
     print "════════╬════════════════════════════════════════════╬════════" at (0, 25).
     print " X CNCL │                                            │ M MAPV " at (0, 26).
     print "────────╣                                            ╠────────" at (0, 27).
-    print " Q QUIT │ >                                          │ I INFO " at (0, 28).
+    print " Q QUIT │ >                                          │        " at (0, 28).
     if not this:standby print "STBY" at (3, 28).
+    local warpKey is runtime:warpAssist:safeCall0("uiContent").
+    print warpKey at (55, 28).
     set this:shellUpdateToken to 0. // Refresh shell next time
 }
 
@@ -307,7 +312,7 @@ local function KateUi_setStatus {
 local function KateUi_getFocussedModuleTitle {
     parameter this,
               runtime.
-    return this:focussedModule.
+    return "█ " + this:focussedModule.
 }
 
 local function KateUi_getFocussedModuleContent {

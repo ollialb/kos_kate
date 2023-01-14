@@ -34,7 +34,7 @@ local function KateWindow2_drawFrame {
     local height is this:height.
 
     local title is this:titleProvider:call(). // string
-    local headerLine is "░" + GRAYBAR:substring(0, 1) + "░ █ " + title + " ░" + GRAYBAR:substring(0, width - 9 - title:length) + "░".
+    local headerLine is "░" + GRAYBAR:substring(0, 1) + "░ " + title + " ░" + GRAYBAR:substring(0, width - 9 - title:length) + "░".
     print headerLine at (left, top).
 }
 
@@ -49,7 +49,7 @@ local function KateWindow2_drawContent {
     local title is this:titleProvider:call(). // string
     local content is this:contentProvider:call(). // list of strings
 
-    local headerLine is "░" + GRAYBAR:substring(0, 1) + "░ █ " + title + " ░" + GRAYBAR:substring(0, width - 9 - title:length) + "░".
+    local headerLine is "░" + GRAYBAR:substring(0, 1) + "░ " + title + " ░" + GRAYBAR:substring(0, width - 9 - title:length) + "░".
     print headerLine at (left, top).
 
     for i in range(0, height - 3) {

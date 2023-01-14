@@ -2,6 +2,9 @@
 
 include("kate/core/kate_object").
 
+global WARP_INHIBIT is TimeStamp(-1).
+global WARP_NONE is TimeStamp(0).
+
 // A process wraps a particular task.
 global function KateProcess {
     parameter pClass, pId.
@@ -15,13 +18,10 @@ global function KateProcess {
     this:abstract("work").
     this:def("finish", KateProcess_finish@).
 
+    this:def("warpPoint", KateProcess_warpPoint@).
+
     this:def("uiTitle", KateProcess_uiTitle@).
     this:def("uiContent", KateProcess_uiContent@).
-
-    //set this:runtime to pRuntime.
-
-    // Optional Methods
-    // work()
 
     return this.
 }
@@ -29,6 +29,11 @@ global function KateProcess {
 local function KateProcess_finish {
     parameter this.
     set this:finished to true.
+}
+
+local function KateProcess_warpPoint {
+    parameter this.
+    return WARP_NONE.
 }
 
 local function KateProcess_uiTitle {

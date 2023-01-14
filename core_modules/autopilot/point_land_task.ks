@@ -626,7 +626,7 @@ local function KatePointLandTask_alignedThrottle {
     parameter this,
               desiredThrottle,
               allowedDeviation is 90,
-              offAlignmentThrottleRatio is 0.2.
+              offAlignmentThrottleRatio is 0.01.
 
     local steeringError is vAng(ship:facing:forevector, this:steering).
     if abs(steeringError) < allowedDeviation {

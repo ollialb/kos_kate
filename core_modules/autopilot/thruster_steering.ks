@@ -62,11 +62,7 @@ local function KateThrusterSteering_uiContent {
                 result. // list
 
     result:add("M_ENG STRNG [" + this:state + "]: '" + (this:target):name + "'").
-    result:add(kate_datum("DX ", UNIT_DISTANCE, this:relativePosition:x,1)   + kate_datum("VX ", UNIT_SPEED, this:relativeVelocity:x,1)).
-    result:add(kate_datum("DY ", UNIT_DISTANCE, this:relativePosition:y,1)   + kate_datum("VY ", UNIT_SPEED, this:relativeVelocity:y,1)).
-    result:add(kate_datum("DZ ", UNIT_DISTANCE, this:relativePosition:z,1)   + kate_datum("VZ ", UNIT_SPEED, this:relativeVelocity:z,1)).
     result:add(kate_datum("ANG", UNIT_DEGREE, this:interceptAngle,1)         + kate_datum("VEL", UNIT_SPEED, this:relativeVelocity:mag,1)).
-    result:add(kate_datum("T_D ", UNIT_SECONDS, this:decelerationTime,1)     + kate_datum("MCD", UNIT_DISTANCE, this:maxCoastingDistance,1)).
 }
 
 local function KateThrusterSteering_onCyclic {

@@ -16,6 +16,7 @@ global function KateExecNodeTask {
 
     this:declareParameter("staging", "AUTO", "string {OFF|AUTO} - determines if staging shall be performed.").
 
+    this:override("warpPoint", KateExecNodeTask_warpPoint@). // returns: timestamp. 0 means none, negative means inhibit
     this:override("uiContent", KateExecNodeTask_uiContent@).
     
     this:def("onActivate", KateExecNodeTask_onActivate@).
@@ -28,6 +29,7 @@ global function KateExecNodeTask {
     set this:burnTime to -1.
     set this:nodeTime to TimeStamp().
     set this:burnStart to TimeStamp().
+    set this:warpTime to TimeStamp(0).
     set this:state to STATE_INIT.
     set this:burnPhase to "-".
     set this:message to "-".
@@ -41,6 +43,11 @@ global function KateExecNodeTask {
     return this.
 }
 
+local function KateExecNodeTask_warpPoint {
+    parameter   this.
+    return this:warpTime.
+}
+
 local function KateExecNodeTask_uiContent {
     parameter   this.
     local result is list().
@@ -49,9 +56,9 @@ local function KateExecNodeTask_uiContent {
     local burnStartIn is this:burnStart - time.
 
     if this:state = STATE_INIT or this:state = STATE_WAIT_BURN_START {
-        result:add(("T- " + kate_prettyTime(burnStartIn) + " "):padright(12)            + kate_datum("DV ", UNIT_SPEED, node:deltav:mag, 1)).
+        result:add("WAIT " + ("T- " + kate_prettyTime(burnStartIn) + " "):padright(12)            + kate_datum("DV ", UNIT_SPEED, node:deltav:mag, 1)).
     } else if this:state = STATE_BURN {
-        result:add(("T+ " + kate_prettyTime(this:remainingActualBurnTime)):padright(12) + kate_datum("DV ", UNIT_SPEED, this:remainingDeltaV, 1)).
+        result:add("BURN " + ("T- " + kate_prettyTime(this:remainingActualBurnTime)):padright(12) + kate_datum("DV ", UNIT_SPEED, this:remainingDeltaV, 1)).
     } else if this:state = STATE_FINISHED {
         // Nothing
     }
@@ -73,6 +80,7 @@ local function KateExecNodeTask_onActivate {
     set this:burnStart to burnStart.
     set this:burnVector to burnVector.
     set this:burnPhase to "MAX".
+    set this:warpTime to burnStart - TimeSpan(5).
     set this:remainingMinBurnTime to burnTime.
     set this:remainingActualBurnTime to burnTime.
     set this:remainingDeltaV to node:deltav:mag.
@@ -87,7 +95,9 @@ local function KateExecNodeTask_onActivate {
 
 local function KateExecNodeTask_onDeactivate {
     parameter   this.
-    
+
+    set this:warpTime to TimeStamp(0).
+
     unlock throttle.
     this:steering:disable().
 }
@@ -110,6 +120,7 @@ local function KateExecNodeTask_onCyclic {
 
     if this:state = STATE_WAIT_BURN_START {
         if time > this:burnStart {
+            set this:warpTime to TimeStamp(0).
             set this:state to STATE_BURN.
         }
     }
