@@ -45,7 +45,11 @@ global function KateExecNodeTask {
 
 local function KateExecNodeTask_warpPoint {
     parameter   this.
-    return this:warpTime.
+    if vectorAngle(ship:facing:forevector, this:burnVector) < 1 and this:state = STATE_WAIT_BURN_START {
+        return this:burnStart.
+    } else {
+        return TimeStamp(0).
+    }
 }
 
 local function KateExecNodeTask_uiContent {
@@ -120,7 +124,6 @@ local function KateExecNodeTask_onCyclic {
 
     if this:state = STATE_WAIT_BURN_START {
         if time > this:burnStart {
-            set this:warpTime to TimeStamp(0).
             set this:state to STATE_BURN.
         }
     }

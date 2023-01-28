@@ -263,8 +263,7 @@ local function KateUi_drawMainFrame {
     print "────────╣                                            ╠────────" at (0, 27).
     print " Q QUIT │ >                                          │        " at (0, 28).
     if not this:standby print "STBY" at (3, 28).
-    local warpKey is runtime:warpAssist:safeCall0("uiContent").
-    print warpKey at (55, 28).
+
     set this:shellUpdateToken to 0. // Refresh shell next time
 }
 
@@ -279,6 +278,9 @@ local function KateUi_drawMainContent {
     
     local sysInfo is ("M" + runtime:messageQueue:messageCount() + " P" + runtime:messageQueue:messageCount() + " @" + config:ipu). 
     print sysinfo:padright(14) + now:padleft(28) at (10, 0).
+
+    local warpKey is runtime:warpAssist:safeCall0("uiContent").
+    print warpKey at (55, 28).
 
     //if time - this:statusTime > MAX_STATUS_MESSAGE_AGE {
     //    this:setStatus("").
