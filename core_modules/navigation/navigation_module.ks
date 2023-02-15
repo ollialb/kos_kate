@@ -85,8 +85,8 @@ local function KateCoreNavigationModule_renderModuleUi {
     }
 
     if this:offerNodeExecTask and hasNode {
-        local node is nextNode.
-        local nodeSpan is TimeSpan(node:eta).
+        local node_ is nextNode.
+        local nodeSpan is TimeSpan(node_:eta).
         result:add("7: Exec next node in " + kate_prettyTime(nodeSpan)).
     } 
 

@@ -305,9 +305,9 @@ local function KateUi_drawShell {
 
 local function KateUi_setStatus {
     parameter this,
-              status.
+              status_.
     
-    set this["status"] to status.
+    set this["status"] to status_.
     set this:statusTime to time.
 }
 

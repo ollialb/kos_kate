@@ -53,13 +53,13 @@ global function kate_greatCircleDistance {
     local lng1 is pos1:lng.
     local lat2 is pos2:lat.
     local lng2 is pos2:lng.
-    local r is ship:body:radius.
+    local radius is ship:body:radius.
 
     local havLat is sin((lat2-lat1)/2)^2.
     local havLng is cos(lat1) * cos(lat2) * sin((lng2-lng1)/2)^2.
     local havTerm is arcSin(sqrt(havLat + havLng)) * constant:degtorad.
 
-    return 2 * r * havTerm. 
+    return 2 * radius * havTerm. 
 }
 
 // Haversine formula for creat circle distance on spherical bodies.
@@ -86,11 +86,11 @@ global function kate_timeOfAltitude {
     local a is pVessel:orbit:semimajoraxis.
     local b is pVessel:orbit:semiminoraxis.
     local e is pVessel:orbit:eccentricity.
-    local r is pTargetAltitude + pVessel:body:radius.
+    local radius is pTargetAltitude + pVessel:body:radius.
     local mu is pVessel:body:mu.
 
-    if r <= ap and r >= pe {
-        return sqrt((a^3)/mu) * (2 * arcTan(sqrt((r - a * (1 - e)) / (a * (1 + e) - r)))*constant:degtorad - sqrt(e^2 - (1 - r / a)^2)).
+    if radius <= ap and radius >= pe {
+        return sqrt((a^3)/mu) * (2 * arcTan(sqrt((radius - a * (1 - e)) / (a * (1 + e) - radius)))*constant:degtorad - sqrt(e^2 - (1 - radius / a)^2)).
     } else {
         return 1E12.
     }

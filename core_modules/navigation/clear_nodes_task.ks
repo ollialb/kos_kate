@@ -34,7 +34,7 @@ local function KateClearNodesTask_clearNodes {
     parameter   this.
 
     local nodes is allNodes.
-    for node in nodes {
-        remove node.
+    for node_ in nodes {
+        remove node_.
     }
 }

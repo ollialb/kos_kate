@@ -55,8 +55,8 @@ local function KateSingleShotTask_createNode {
 
     local nodeTime is time + TimeSpan(etaApsis).
     local nodeDeltaV is circularV - apsisV.
-    local node is Node(nodeTime, 0, 0, nodeDeltaV).
-    add node.
+    local newNode is Node(nodeTime, 0, 0, nodeDeltaV).
+    add newNode.
 
     set this:message to "DeltaV " + round(nodeDeltaV, 2) + " m/s".
 }

@@ -56,11 +56,11 @@ local function KateExecNodeTask_uiContent {
     parameter   this.
     local result is list().
 
-    local node is nextNode.
+    local node_ is nextNode.
     local burnStartIn is this:burnStart - time.
 
     if this:state = STATE_INIT or this:state = STATE_WAIT_BURN_START {
-        result:add("WAIT " + ("T- " + kate_prettyTime(burnStartIn) + " "):padright(12)            + kate_datum("DV ", UNIT_SPEED, node:deltav:mag, 1)).
+        result:add("WAIT " + ("T- " + kate_prettyTime(burnStartIn) + " "):padright(12)            + kate_datum("DV ", UNIT_SPEED, node_:deltav:mag, 1)).
     } else if this:state = STATE_BURN {
         result:add("BURN " + ("T- " + kate_prettyTime(this:remainingActualBurnTime)):padright(12) + kate_datum("DV ", UNIT_SPEED, this:remainingDeltaV, 1)).
     } else if this:state = STATE_FINISHED {
@@ -72,13 +72,13 @@ local function KateExecNodeTask_uiContent {
 local function KateExecNodeTask_onActivate {
     parameter   this.
 
-    local node is nextNode.
-    local nodeTime is TimeStamp(node:time).
-    local burnTime is (node:deltav:mag*mass)/availablethrust * 1.1.
+    local node_ is nextNode.
+    local nodeTime is TimeStamp(node_:time).
+    local burnTime is (node_:deltav:mag*mass)/availablethrust * 1.1.
     local burnStart is nodeTime - TimeSpan(burnTime*0.5).
-    local burnVector is node:deltav.
+    local burnVector is node_:deltav.
 
-    set this:node to node.
+    set this:node to node_.
     set this:nodeTime to nodeTime.
     set this:burnTime to burnTime.
     set this:burnStart to burnStart.
@@ -87,8 +87,8 @@ local function KateExecNodeTask_onActivate {
     set this:warpTime to burnStart - TimeSpan(5).
     set this:remainingMinBurnTime to burnTime.
     set this:remainingActualBurnTime to burnTime.
-    set this:remainingDeltaV to node:deltav:mag.
-    set this:initialDeltaVec to node:deltav.
+    set this:remainingDeltaV to node_:deltav:mag.
+    set this:initialDeltaVec to node_:deltav.
     set this:finalDeltaV to 0.
     set this:throttle to 0.
     set this:state to STATE_INIT.
@@ -109,7 +109,7 @@ local function KateExecNodeTask_onDeactivate {
 local function KateExecNodeTask_onCyclic {
     parameter   this.
 
-    local node is this:node.
+    local node_ is this:node.
 
     if this:state = STATE_INIT and (not hasNode) {
         set this:message to "Node lost".
@@ -129,10 +129,10 @@ local function KateExecNodeTask_onCyclic {
     }
 
     if this:state = STATE_BURN {
-        set this:remainingMinBurnTime to choose (node:deltav:mag*mass)/availableThrust if availableThrust > 0 else 999999.
+        set this:remainingMinBurnTime to choose (node_:deltav:mag*mass)/availableThrust if availableThrust > 0 else 999999.
         set this:remainingActualBurnTime to choose this:remainingMinBurnTime/this:throttle if this:throttle > 0 else 999999.
-        set this:remainingDeltaV to node:deltav:mag.
-        local angle is vectorDotProduct(this:initialDeltaVec, node:deltav).
+        set this:remainingDeltaV to node_:deltav:mag.
+        local angle is vectorDotProduct(this:initialDeltaVec, node_:deltav).
 
         if this:remainingDeltaV / this:initialDeltaVec:mag <= 0.00001 or angle < 0 {
             set this:message to "Vector error in target bounds".

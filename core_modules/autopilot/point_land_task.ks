@@ -556,13 +556,13 @@ local function KatePointLandTask_greatCircleDistance {
     local lng1 is pos1:lng.
     local lat2 is pos2:lat.
     local lng2 is pos2:lng.
-    local r is ship:body:radius.
+    local radius is ship:body:radius.
 
     local havLat is sin((lat2-lat1)/2)^2.
     local havLng is cos(lat1) * cos(lat2) * sin((lng2-lng1)/2)^2.
     local havTerm is arcSin(sqrt(havLat + havLng)) * constant:degtorad.
 
-    return 2 * r * havTerm. 
+    return 2 * radius * havTerm. 
 }
 
 // Haversine formula for creat circle distance on spherical bodies.
@@ -648,11 +648,11 @@ local function KatePointLandTask_timeOfAltitude {
     local a is ship:orbit:semimajoraxis.
     local b is ship:orbit:semiminoraxis.
     local e is ship:orbit:eccentricity.
-    local r is targetAltitude + ship:body:radius.
+    local radius is targetAltitude + ship:body:radius.
     local mu is ship:body:mu.
 
-    if r <= ap and r >= pe {
-        return sqrt((a^3)/mu) * (2 * arcTan(sqrt((r - a * (1 - e)) / (a * (1 + e) - r)))*constant:degtorad - sqrt(e^2 - (1 - r / a)^2)).
+    if radius <= ap and radius >= pe {
+        return sqrt((a^3)/mu) * (2 * arcTan(sqrt((radius - a * (1 - e)) / (a * (1 + e) - radius)))*constant:degtorad - sqrt(e^2 - (1 - radius / a)^2)).
     } else {
         return INFINITE_TIME.
     }

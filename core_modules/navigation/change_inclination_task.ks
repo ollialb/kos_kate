@@ -52,8 +52,8 @@ local function KateChangeInclinationTask_createNode {
     local apsisVelocityDesired is rotationAxis * apsisVelocityCurrent.
     local nodeVector is (apsisVelocityDesired - apsisVelocityCurrent).
 
-    local node is Node(nodeTime, nodeVector:x, nodeVector:y, nodeVector:z).
-    add node.
+    local newNode is Node(nodeTime, nodeVector:x, nodeVector:y, nodeVector:z).
+    add newNode.
     set this:message to "DeltaV " + round(nodeVector:mag, 2) + " m/s".
     
 }

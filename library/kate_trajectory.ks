@@ -8,8 +8,8 @@ local function kate_atmosphericForceVector {
                 pAtmosphere, // from kate_AtmosphereAt
                 pShipArea is 10.
 
-    local cd is 0.1.
-    local drag is cd * pAtmosphere:dynamicPressure * pShipArea.
+    local dragCoefficient is 0.1.
+    local drag is dragCoefficient * pAtmosphere:dynamicPressure * pShipArea.
     local dragVector is -drag * pVelocity:normalized.
     return dragVector.
 }

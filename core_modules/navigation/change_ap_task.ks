@@ -45,7 +45,7 @@ local function KateChangeApTask_createNode {
     local nodeDeltaV is choose PeV - newPeV if newApoapsis < apoapsis else newPeV - PeV.
 
     local nodeTime is time + TimeSpan(etaApsis).
-    local node is Node(nodeTime, 0, 0, nodeDeltaV).
-    add node.
+    local newNode is Node(nodeTime, 0, 0, nodeDeltaV).
+    add newNode.
     set this:message to "DeltaV " + round(nodeDeltaV, 2) + " m/s".
 }

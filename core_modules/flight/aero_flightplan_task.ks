@@ -147,7 +147,7 @@ local function KateAeroFlightPlan_calculateWaypoint {
 }
 
 local function KateAeroFlightPlan_setAutopilotParameters {
-    parameter this, waypoint.
+    parameter this, currentWp.
 
     this:calculateWaypoint().
 

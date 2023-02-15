@@ -78,9 +78,9 @@ local function KateInterceptTask_createNodes {
     // FIRST NODE -----------------------------------------------
     local timeToRPA is abs(dAngle/phaseAngleRate).
 
-    local V is sqrt(body:mu/orbit:semimajoraxis).
+    local V_ is sqrt(body:mu/orbit:semimajoraxis).
     local TV is sqrt(2*body:mu*((1/(body:radius+periapsis))-(1/transferSMA/2))).
-    local dV is abs(TV-V).
+    local dV is abs(TV-V_).
 
     local firstNode is Node(time + timeToRPA, 0, 0, dV).
     add firstNode.
