@@ -22,7 +22,8 @@ global function KateAtmosphericAscentTask {
 
     this:declareParameter("apoapsis",   "150",   "apoapsis    [km]: ").
     this:declareParameter("inclination", "90",   "inclination  [°]: ").
-    this:declareParameter("controlLaw", "AUTO",  "law  [POLY|AUTO]:  ").
+    this:declareParameter("controlLaw", "AUTO",  "law  [POLY|AUTO]: ").
+    this:declareParameter("maxAOA",      "20",   "max AOA      [°]: ").
     this:declareParameter("curvature",    "2",   "curvature    [-]: ").
 
     this:override("uiContent", KateAtmosphericAscentTask_uiContent@).
@@ -56,6 +57,7 @@ global function KateAtmosphericAscentTask {
     set this:atmos to kate_AtmosphereAt(ship:altitude, ship:airspeed).
     set this:targetInclination to 90.
     set this:effectiveAtmosphereAltitude to ship:body:atm:height.
+    set this:maxAOA to 20.
     set this:pitchPid to pidLoop(1, 0.1, 0.05, -95, -5).
     set this:pitchPid:setpoint to 30. // seconds to apogee
 
@@ -90,6 +92,7 @@ local function KateAtmosphericAscentTask_onActivate {
     set this:targetInclination to this:getNumericalParameter("inclination").
     set this:targetAp to this:getNumericalParameter("apoapsis") * 1000.
     set this:curvature to this:getNumericalParameter("curvature").
+    set this:maxAOA to this:getNumericalParameter("maxAOA").
     set this:controlLaw to this:getParameter("controlLaw").
 
     lock steering to this:steering.
@@ -147,14 +150,17 @@ local function KateAtmosphericAscentTask_onCyclic {
                 } else {
                     set this:pitchPid:minOutput to -95.
                 }
+                local velocityPitch is -vectorAngle(velocity:surface, ship:up:vector).
+                set this:pitchPid:minOutput to max(this:pitchPid:minOutput, velocityPitch - this:maxAOA).
+                set this:pitchPid:maxOutput to min(-5, velocityPitch + this:maxAOA).
                 local steerPitch is 90 + this:pitchPid:update(time:seconds, ship:orbit:eta:apoapsis).
                 set this:steering to heading(this:targetInclination, steerPitch).
-                set this:message to "PtchCtr: " + round(steerPitch, 1) + "°".
+                set this:message to "PTC: " + round(steerPitch, 1) + "° [" + round(90 + velocityPitch,1) + ": " + round(90 + this:pitchPid:minOutput,1)+ " .. " + round(90 + this:pitchPid:maxOutput,1)+ "]".
             } else { // POLYNOMIAL
                 local trajectoryPitch is min(90, max((max((this:effectiveAtmosphereAltitude - ship:altitude)/this:effectiveAtmosphereAltitude, 0.000001)^(this:curvature) * 90),0)).
                 local steerPitch is trajectoryPitch.
                 set this:steering to heading(this:targetInclination, steerPitch).
-                set this:message to "PtchCtr: " + round(trajectoryPitch, 1) + "°".
+                set this:message to "PTC: " + round(trajectoryPitch, 1) + "°".
             }
 
             if ship:orbit:apoapsis > this:targetAp {

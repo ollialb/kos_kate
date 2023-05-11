@@ -62,7 +62,7 @@ global function kate_greatCircleDistance {
     return 2 * radius * havTerm. 
 }
 
-// Haversine formula for creat circle distance on spherical bodies.
+// Haversine formula for creat circle azimuth on spherical bodies.
 global function kate_greatCircleAzimuth {
     parameter pos1, pos2. // GeoCoordinates
               
